@@ -2,12 +2,12 @@
 import pycountry
 from src.conversion import transform_bounds
 
-URL_LOAD = "https://data.open-power-system-data.org/time_series/2018-06-30/time_series_60min_stacked.csv"
+URL_LOAD = "https://data.open-power-system-data.org/time_series/2019-06-05/time_series_60min_stacked.csv"
 URL_NUTS = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip"
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
 URL_DEGURBA = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/DGURBA_2014_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
-URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Feb2019?type=shapefile"
+URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Apr2020?type=shapefile"
 URL_CGIAR_TILE = "http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/"
 URL_GMTED_TILE = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Global_tiles_GMTED/075darcsec/mea/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
