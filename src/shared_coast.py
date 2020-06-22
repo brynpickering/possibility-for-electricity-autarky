@@ -61,8 +61,15 @@ def _share_of_coast_length(args):
         share = length_of_shared_coast.copy()
         share[intersection_mask] = 1
     else:
+        if eez["geometry"].is_valid is False:
+            # self intersection that would cause problem later. Zero buffer is a bit of a hack, but suggested several times online
+            _eez = eez["geometry"].buffer(0)
+        else:
+            _eez = eez["geometry"]
         length_of_shared_coast[intersection_mask] = units.loc[intersection_mask, "geometry"].map(
-            lambda unit: eez["geometry"].intersection(unit).length
+            lambda unit: _eez.intersection(unit).length
+            if unit.is_valid is True else
+            _eez.intersection(unit.buffer(0)).length
         )
         share = length_of_shared_coast / length_of_shared_coast.sum()
     return share
