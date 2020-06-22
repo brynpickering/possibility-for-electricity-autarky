@@ -32,7 +32,7 @@ scope:
         - "United Kingdom"
         - "Albania"
         - "Bosnia and Herzegovina"
-        - "Macedonia, Republic of"
+        - "North Macedonia"
         - "Montenegro"
         - "Norway"
         - "Serbia"
@@ -73,7 +73,7 @@ layers:
         United Kingdom: nuts0
         Albania: gadm0
         Bosnia and Herzegovina: gadm0
-        Macedonia, Republic of: gadm0
+        North Macedonia: gadm0
         Montenegro: gadm0
         Norway: nuts0
         Serbia: gadm0
@@ -108,7 +108,7 @@ layers:
         United Kingdom: nuts0
         Albania: gadm0
         Bosnia and Herzegovina: gadm0
-        Macedonia, Republic of: gadm0
+        North Macedonia: gadm0
         Montenegro: gadm0
         Norway: nuts0
         Serbia: gadm0
@@ -147,7 +147,7 @@ layers:
         United Kingdom: gadm1 # match 4
         Albania: gadm1 # match 12
         Bosnia and Herzegovina: gadm1 # match 3
-        Macedonia, Republic of: nuts3 # match 8 (statistical, non-administrative)
+        North Macedonia: nuts3 # match 8 (statistical, non-administrative)
         Montenegro: gadm1 # match 21
         Norway: gadm1 # match 19
         Serbia: gadm1 # gadm1 25 regions; wiki 5 regions
@@ -182,11 +182,46 @@ layers:
         United Kingdom: lau2
         Albania: gadm3
         Bosnia and Herzegovina: gadm3
-        Macedonia, Republic of: gadm1 # 85, instead of 1817 in LAU2; https://en.wikipedia.org/wiki/Municipalities_of_the_Republic_of_Macedonia
+        North Macedonia: gadm1 # 85, instead of 1817 in LAU2; https://en.wikipedia.org/wiki/Municipalities_of_the_Republic_of_Macedonia
         Montenegro: gadm1 # same as regional
         Norway: lau2
         Serbia: lau2
         Switzerland: lau2
+    subregional:
+        Austria: nuts3
+        Belgium: nuts0
+        Bulgaria: nuts0
+        Croatia: nuts0
+        Cyprus: nuts0
+        Czech Republic: nuts3
+        Denmark: nuts3
+        Estonia: nuts0
+        Finland: nuts3
+        France: nuts3
+        Germany: nuts3
+        Greece: nuts3
+        Hungary: nuts0
+        Ireland: nuts0
+        Italy: nuts3
+        Latvia: nuts0
+        Lithuania: nuts0
+        Luxembourg: nuts0
+        Netherlands: nuts0
+        Poland: nuts3
+        Portugal: nuts3
+        Romania: nuts3
+        Slovakia: nuts0
+        Slovenia: nuts0
+        Spain: nuts3
+        Sweden: nuts3
+        United Kingdom: nuts3
+        Albania: gadm0
+        Bosnia and Herzegovina: gadm0
+        North Macedonia: gadm0
+        Montenegro: gadm0
+        Norway: nuts3
+        Serbia: gadm0
+        Switzerland: nuts3
 parameters:
     maximum-installable-power-density: # this is not the yield, but the density of installed power
         pv-on-tilted-roofs: 160 # [W/m^2] from (Gagnon:2016, Klauser:2016), i.e. 16% efficiency
@@ -214,6 +249,14 @@ parameters:
 scenarios:
     technical-potential:
         use-protected-areas: True
+        pv-on-farmland: True
+        share-farmland-used: 1.0
+        share-forest-used-for-wind: 1.0
+        share-other-land-used: 1.0
+        share-offshore-used: 1.0
+        share-rooftops-used: 1.0
+    technical-potential-protected:
+        use-protected-areas: False
         pv-on-farmland: True
         share-farmland-used: 1.0
         share-forest-used-for-wind: 1.0

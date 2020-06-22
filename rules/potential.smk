@@ -321,6 +321,24 @@ rule areas:
         PYTHON_SCRIPT + " {wildcards.scenario} {CONFIG_FILE}"
 
 
+rule dissolve_eurospores:
+    message: "Dissolve NUTS3 data to EuroSPORES clusters"
+    input:
+        csvs = expand("build/subregional/{subdir}.csv",
+            subdir=["technical-potential/areas", "technical-potential-protected/areas", "technical-social-potential/areas", "shared-coast", "demand", "population", "land-cover"]
+        ),
+        units = "build/subregional/units.geojson",
+        src = "src/dissolve_eurospores.py",
+        gtc = "../data/eurospores.xlsx"
+    conda: "../envs/default.yaml"
+    output:
+        csvs = expand("build/eurospores/{subdir}.csv",
+            subdir=["technical-potential/areas", "technical-potential-protected/areas", "technical-social-potential/areas", "shared-coast", "demand", "population", "land-cover"]
+        ),
+        units = "build/eurospores/units.geojson",
+    script: "../src/dissolve_eurospores.py"
+
+
 rule capacities:
     message:
         "Determine installable capacities for layer {wildcards.layer} in scenario {wildcards.scenario}."
