@@ -69,7 +69,7 @@ rule raw_gadm_administrative_borders:
     shell: "unzip -o {input} -d data/automatic/raw-gadm"
 
 
-rule merge_gadm_administrative_borders:
+rule all_gadm_administrative_borders:
     message: "Merge gadm administrative borders of all countries."
     input:
         ["data/automatic/raw-gadm/gadm36_{}.gpkg".format(country_code)
@@ -85,17 +85,6 @@ rule merge_gadm_administrative_borders:
         """
 
 
-rule administrative_borders_gadm:
-    message: "Normalise GADM administrative borders of all countries."
-    input:
-        "src/gadm.py",
-        "data/automatic/raw-gadm/gadm36.gpkg"
-    output: "build/administrative-borders-gadm.gpkg"
-    conda: "../envs/default.yaml"
-    shell:
-        PYTHON + " {input} {output} {CONFIG_FILE}"
-
-
 rule raw_nuts_units_zipped:
     message: "Download units as zip."
     output:
@@ -104,24 +93,6 @@ rule raw_nuts_units_zipped:
         url = URL_NUTS.format(config["parameters"]["nuts-year"])
     shell:
         "curl -sLo {output} '{params.url}'"
-
-
-rule administrative_borders_nuts:
-    message: "Normalise NUTS administrative borders."
-    input:
-        src = "src/nuts.py",
-        zip = rules.raw_nuts_units_zipped.output
-    output:
-        "build/administrative-borders-nuts.gpkg"
-    shadow: "full"
-    params:
-        year = config['parameters']['nuts-year']
-    conda: "../envs/default.yaml"
-    shell:
-        """
-        unzip {input.zip} -d ./build/NUTS_RG_01M_{params.year}_4326/
-        {PYTHON} {input.src} ./build/NUTS_RG_01M_{params.year}_4326 {output} {CONFIG_FILE}
-        """
 
 
 rule raw_lau_units_zipped:
@@ -138,7 +109,7 @@ rule administrative_borders_lau:
         src = "src/lau.py",
         zip = rules.raw_lau_units_zipped.output
     output:
-        "build/administrative-borders-lau.geojson"
+        temp("build/raw-lau-identified.gpkg")
     shadow: "full"
     conda: "../envs/default.yaml"
     shell:
@@ -147,7 +118,26 @@ rule administrative_borders_lau:
         {PYTHON} {input.src} merge ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp \
         ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
         {PYTHON} {input.src} identify ./build/raw-lau.gpkg ./build/raw-lau-identified.gpkg
-        {PYTHON} {input.src} normalise ./build/raw-lau-identified.gpkg {output} {CONFIG_FILE}
+        """
+
+
+rule administrative_borders:
+    message: "Normalise all administrative borders."
+    input:
+        src = "src/administrative_borders.py",
+        nuts_zip = rules.raw_nuts_units_zipped.output,
+        gadm_gpkg = rules.all_gadm_administrative_borders.output,
+        lau_gpkg = rules.administrative_borders_lau.output
+    output:
+        "build/administrative-borders.gpkg"
+    shadow: "full"
+    params:
+        year = config['parameters']['nuts-year']
+    conda: "../envs/default.yaml"
+    shell:
+        """
+        unzip {input.nuts_zip} -d ./build/NUTS_RG_01M_{params.year}_4326/
+        {PYTHON} {input.src} ./build/NUTS_RG_01M_{params.year}_4326 {input.gadm_gpkg} {input.lau_gpkg} {output} {CONFIG_FILE}
         """
 
 
@@ -163,7 +153,7 @@ rule lau2_urbanisation_degree:
     message: "Urbanisation degrees on LAU2 level."
     input:
         src = "src/lau.py",
-        lau2 = rules.raw_lau_units_zipped.output,
+        lau2 = rules.administrative_borders_lau.output,
         degurba = rules.raw_urbanisation_zipped.output
     output:
         "build/administrative-borders-lau-urbanisation.csv"
@@ -171,11 +161,8 @@ rule lau2_urbanisation_degree:
     conda: "../envs/default.yaml"
     shell:
         """
-        unzip {input.lau2} -d ./build
         unzip {input.degurba} -d ./build
-        {PYTHON} {input.src} merge ./build/COMM_01M_2013_SH/data/COMM_RG_01M_2013.shp \
-        ./build/COMM_01M_2013_SH/data/COMM_AT_2013.dbf ./build/raw-lau.gpkg
-        {PYTHON} {input.src} degurba ./build/raw-lau.gpkg ./build/DGURBA_2014_SH/data/DGURBA_RG_01M_2014.shp {output}
+        {PYTHON} {input.src} degurba {input.lau2} ./build/DGURBA_2014_SH/data/DGURBA_RG_01M_2014.shp {output}
         """
 
 
