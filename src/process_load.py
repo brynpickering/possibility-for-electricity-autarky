@@ -18,8 +18,8 @@ def process_data(path_to_raw_load, path_to_output_data, config):
     """Extracts national energy demand 2017 from raw data."""
     data = read_load_profiles(
         path_to_raw_load=path_to_raw_load,
-        start=datetime(2017, 1, 1),
-        end=datetime(2018, 1, 1),
+        start=pd.Timestamp(year=2017, month=1, day=1, tz='UTC'),
+        end=pd.Timestamp(year=2018, month=1, day=1, tz='UTC'),
         country_codes_iso2=[pycountry.countries.lookup(country).alpha_2
                             for country in config["scope"]["countries"]]
     )
@@ -39,7 +39,7 @@ def read_load_profiles(path_to_raw_load, start, end, country_codes_iso2):
     data = _remove_entsoe_power_statistic_data_where_possible(data)
     data.drop(["variable", "attribute"], axis=1, inplace=True)
     data = data.pivot(columns="region", index="utc_timestamp", values="data")
-    national = data.loc[:, country_codes_iso2].copy()
+    national = data.reindex(columns=country_codes_iso2).copy()
     national.columns.name = "country_code"
     national.rename(columns=lambda iso2: pycountry.countries.lookup(iso2).alpha_3, inplace=True)
     _check_completeness(national)

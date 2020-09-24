@@ -16,10 +16,18 @@ def dissolve_nuts3(path_to_csvs, path_to_units, path_to_gtc):
 
     locations = pd.read_excel(path_to_gtc, sheet_name="locations", header=0)
     # Any EuroSPORES clusters which are whole countries will be whole countries at the subregional scale too
-    locations['NUTS3'] = locations.NUTS3.fillna(
-        locations.Country.map(_get_alpha3)
+    locations = (
+        locations
+        .dropna(subset=['NUTS3_2006'])
+        .set_index(locations.dropna(subset=['NUTS3_2006']).NUTS3_2006)
+        .EuroSPORES
+        .append(
+            locations[locations.Source != 'NUTS3']
+            .set_index('Country')
+            .rename(index=_get_alpha3)
+            .EuroSPORES
+        )
     )
-    locations.set_index('NUTS3', inplace=True)
 
     units = _update_units(path_to_units, locations)
     for path_to_csv in path_to_csvs:
@@ -35,7 +43,7 @@ def _update_csv(path_to_csv, locations):
 
     _csv = pd.read_csv(path_to_csv, index_col=0, header=0)
     _csv['eurospores_id'] = (
-        locations.reindex(_csv.index).EuroSPORES
+        locations.reindex(_csv.index)
     ).dropna()
 
     # We now deal with non-additive parameters (density and demand fraction)
@@ -70,10 +78,11 @@ def _update_units(path_to_units, locations):
 
     units = gpd.read_file(path_to_units).set_index('id')
     units['eurospores_id'] = (
-        locations.reindex(units.index).EuroSPORES
+        locations.reindex(units.index)
     ).dropna()
-    units.loc[~units.is_valid, 'geometry'] = \
-    units.loc[~units.is_valid, 'geometry'].buffer(0)
+    units.loc[~units.is_valid, 'geometry'] = (
+        units.loc[~units.is_valid, 'geometry'].buffer(0)
+    )
     units = units.dissolve('eurospores_id')
     units.geometry = units.geometry.map(_to_multi_polygon)
     units.index.rename('id', inplace=True)
@@ -82,9 +91,6 @@ def _update_units(path_to_units, locations):
     units['type'].fillna('eurospores_cluster', inplace=True)
 
     return units
-
-
-
 
 if __name__ == "__main__":
     dissolve_nuts3(

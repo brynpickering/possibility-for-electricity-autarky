@@ -8,7 +8,7 @@ There are two types of statistical information extracted from this dataset:
 """
 
 import sys; sys.path.append(os.getcwd()) # this is necessary to be able to import "src", not sure why
-RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_20180827.gdb/"
+RAW_SONNENDACH_DATA = "data/sonnendach/SOLKAT_20180827.gdb"
 RAW_BUILDING_CATEGORIES = "data/gwr/Table_GEB-01.txt"
 LAYER_NAME = "SOLKAT_CH_DACH"
 DATA_AVAILABLE = 255

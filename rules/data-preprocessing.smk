@@ -3,12 +3,12 @@ import pycountry
 from src.conversion import transform_bounds
 import pandas as pd
 
-URL_LOAD = "https://data.open-power-system-data.org/time_series/2019-06-05/time_series_60min_stacked.csv"
+URL_LOAD = "https://data.open-power-system-data.org/time_series/2018-06-30/time_series_60min_stacked.csv"
 URL_NUTS = "https://ec.europa.eu/eurostat/cache/GISCO/distribution/v2/nuts/shp/NUTS_RG_01M_{}_4326.shp.zip"
 URL_LAU = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/COMM-01M-2013-SH.zip"
 URL_DEGURBA = "http://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/DGURBA_2014_SH.zip"
 URL_LAND_COVER = "http://due.esrin.esa.int/files/Globcover2009_V2.3_Global_.zip"
-URL_PROTECTED_AREAS = "https://www.protectedplanet.net/downloads/WDPA_Apr2020?type=shapefile"
+URL_PROTECTED_AREAS = "http://d1gam3xoknrgr2.cloudfront.net/current/WDPA_{}-shapefile.zip"
 URL_SRTM_TILE = "http://viewfinderpanoramas.org/dem3/"
 URL_GADM = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/"
 URL_BATHYMETRIC = "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/bedrock/grid_registered/georeferenced_tiff/ETOPO1_Bed_g_geotiff.zip"
@@ -21,7 +21,7 @@ RAW_INDUSTRY_DATA = "data/electricity-intensive-industry/energy-intensive-indust
 
 localrules: raw_load, raw_gadm_administrative_borders_zipped, raw_protected_areas_zipped,
     raw_nuts_units_zipped, raw_lau_units_zipped, raw_urbanisation_zipped, raw_land_cover_zipped,
-    raw_land_cover, raw_protected_areas, raw_srtm_elevation_tile_zipped,
+    raw_land_cover, raw_srtm_elevation_tile_zipped,
     raw_bathymetry_zipped, raw_bathymetry, raw_population_zipped, raw_population,
     raw_gadm_administrative_borders
 
@@ -173,17 +173,44 @@ rule raw_land_cover:
 rule raw_protected_areas_zipped:
     message: "Download protected areas data as zip."
     output: protected("data/automatic/raw-wdpa.zip")
-    shell: "curl -sLo {output} -H 'Referer: {URL_PROTECTED_AREAS}' {URL_PROTECTED_AREAS}"
+    params:
+        url = URL_PROTECTED_AREAS.format(config["parameters"]["wdpa-year"])
+    shell: "curl -sLo {output} -H 'Referer: {params.url}' {params.url}"
 
 
 rule raw_protected_areas:
     message: "Extract protected areas data as zip."
     input: rules.raw_protected_areas_zipped.output
+    params:
+        year = config["parameters"]["wdpa-year"]
     output:
-        polygons = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.shp",
-        polygon_data = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-polygons.dbf",
-        points = "build/raw-wdpa-feb2019/WDPA_Feb2019-shapefile-points.shp"
-    shell: "unzip -o {input} -d build/raw-wdpa-feb2019"
+        polygons = "build/raw-wdpa/wdpa-shapes.shp",
+        polygon_data = "build/raw-wdpa/wdpa-shapes.dbf",
+        points = "build/raw-wdpa/wdpa-points.shp"
+    conda: "../envs/default.yaml"
+    shell:
+        """
+        set +e
+        unzip -o {input} -d build/raw-wdpa
+        unzip -o build/raw-wdpa/WDPA_{params.year}-shapefile0.zip -d build/raw-wdpa/WDPA_0
+        unzip -o build/raw-wdpa/WDPA_{params.year}-shapefile1.zip -d build/raw-wdpa/WDPA_1
+        unzip -o build/raw-wdpa/WDPA_{params.year}-shapefile2.zip -d build/raw-wdpa/WDPA_2
+        ogrmerge.py -single -o {output.polygons} \
+        build/raw-wdpa/WDPA_0/WDPA_{params.year}-shapefile-polygons.shp \
+        build/raw-wdpa/WDPA_1/WDPA_{params.year}-shapefile-polygons.shp \
+        build/raw-wdpa/WDPA_2/WDPA_{params.year}-shapefile-polygons.shp
+        ogrmerge.py -single -o {output.points} \
+        build/raw-wdpa/WDPA_0/WDPA_{params.year}-shapefile-points.shp \
+        build/raw-wdpa/WDPA_1/WDPA_{params.year}-shapefile-points.shp \
+        build/raw-wdpa/WDPA_2/WDPA_{params.year}-shapefile-points.shp
+        exitcode=$?
+        if [ $exitcode -eq 1 ]
+        then
+            exit 1
+        else
+            exit 0
+        fi
+        """
 
 
 rule raw_srtm_elevation_tile_zipped:

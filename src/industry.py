@@ -35,28 +35,28 @@ def preprocess_industries(path_to_raw_data, path_to_output):
 def _read_raw_data(path_to_raw_data):
     steel = pd.read_excel(
         path_to_raw_data,
-        sheetname="Total steel",
+        sheet_name="Total steel",
         skipfooter=1
     ).loc[:, COLUMNS]
     primary_aluminium = pd.read_excel(
         path_to_raw_data,
-        sheetname="Total aluminium",
+        sheet_name="Total aluminium",
         skipfooter=27
     ).loc[:, COLUMNS]
     secondary_aluminium = pd.read_excel(
         path_to_raw_data,
-        sheetname="Total aluminium",
+        sheet_name="Total aluminium",
         skiprows=27,
         skipfooter=1
     ).loc[:, COLUMNS]
     cement = pd.read_excel(
         path_to_raw_data,
-        sheetname="Total cement",
+        sheet_name="Total cement",
         skipfooter=1
     ).loc[:, COLUMNS]
     chloralkali = pd.read_excel(
         path_to_raw_data,
-        sheetname="Total chloralkali",
+        sheet_name="Total chloralkali",
         skipfooter=1
     ).loc[:, CHLORALKALI_COLUMNS]
     chloralkali.rename(columns={"Company": "Installation"}, inplace=True)

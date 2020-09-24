@@ -28,13 +28,12 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
     message: "Sum the size of building footprints from settlement data."
     input:
         building_footprints = rules.settlements.output.buildings,
-        eligibility = "build/technically-eligible-land.tif",
-        countries = rules.administrative_borders.output
+        eligibility = rules.category_of_technical_eligibility.output[0],
+        countries = rules.administrative_borders.output[0]
     output:
         "build/building-footprints-according-to-settlement-data-km2.txt"
     run:
         import rasterio
-        import fiona
         from rasterstats import zonal_stats
         import pandas as pd
         import geopandas as gpd
@@ -49,19 +48,20 @@ rule total_size_swiss_building_footprints_according_to_settlement_data:
             transform = f_building_share.transform
         building_share[eligibility != Eligibility.ROOFTOP_PV] = 0
 
-        with fiona.open(input.countries, "r", layer="nuts0") as src:
-            zs = zonal_stats(
-                vectors=src,
-                raster=building_share,
-                affine=transform,
-                stats="mean",
-                nodata=-999
-            )
-            building_share = pd.Series(
-                index=[feat["properties"]["id"] for feat in src],
-                data=[stat["mean"] for stat in zs]
-            )
-        building_footprint_km2 = area_in_squaremeters(gpd.read_file(input.countries).set_index("id")).div(1e6) * building_share
+        vectors = gpd.read_file(input.countries, layer="nuts0")
+
+        zs = zonal_stats(
+            vectors=vectors,
+            raster=building_share,
+            affine=transform,
+            stats="mean",
+            nodata=-999
+        )
+        building_share = pd.Series(
+            index=vectors["id"].values,
+            data=[stat["mean"] for stat in zs]
+        )
+        building_footprint_km2 = area_in_squaremeters(vectors.set_index("id")).div(1e6) * building_share
         swiss_building_footprint = building_footprint_km2.loc["CHE"]
         with open(output[0], "w") as f_out:
             f_out.write(f"{swiss_building_footprint}")
@@ -327,7 +327,7 @@ rule dissolve_eurospores:
         ),
         units = "build/subregional/units.geojson",
         src = "src/dissolve_eurospores.py",
-        gtc = "../data/eurospores.xlsx"
+        gtc = "data/eurospores.xlsx"
     conda: "../envs/default.yaml"
     output:
         csvs = expand("build/eurospores/{subdir}.csv",
