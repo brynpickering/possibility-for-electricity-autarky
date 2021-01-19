@@ -31,3 +31,5 @@ national_boundaries:
     runtime: 60
 administrative_borders_lau:
     runtime: 60
+administrative_borders:
+    runtime: 60
