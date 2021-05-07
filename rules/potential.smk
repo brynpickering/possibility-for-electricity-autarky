@@ -327,7 +327,7 @@ rule dissolve_eurospores:
         ),
         units = "build/subregional/units.geojson",
         src = "src/dissolve_eurospores.py",
-        gtc = "data/eurospores.xlsx"
+        gtc = "data/nuts_to_regions.csv"
     conda: "../envs/default.yaml"
     output:
         csvs = expand("build/eurospores/{subdir}.csv",

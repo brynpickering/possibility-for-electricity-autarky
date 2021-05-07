@@ -6,7 +6,7 @@ import pycountry
 DRIVER = "GeoJSON"
 
 
-def dissolve_nuts3(path_to_csvs, path_to_units, path_to_gtc):
+def dissolve_nuts3(path_to_csvs, path_to_units, path_to_nuts_to_regions):
     """Dissolve NUTS3 data to EuroSPORES clusters."""
 
     def _get_alpha3(alpha2):
@@ -14,18 +14,18 @@ def dissolve_nuts3(path_to_csvs, path_to_units, path_to_gtc):
             alpha2 = 'GB'
         return pycountry.countries.get(alpha_2=alpha2).alpha_3
 
-    locations = pd.read_excel(path_to_gtc, sheet_name="locations", header=0)
+    nuts_to_regions_df = pd.read_csv(path_to_nuts_to_regions, header=0)
     # Any EuroSPORES clusters which are whole countries will be whole countries at the subregional scale too
     locations = (
-        locations
+        nuts_to_regions_df
         .dropna(subset=['NUTS3_2006'])
-        .set_index(locations.dropna(subset=['NUTS3_2006']).NUTS3_2006)
-        .EuroSPORES
+        .set_index(nuts_to_regions_df.dropna(subset=['NUTS3_2006']).NUTS3_2006)
+        .id
         .append(
-            locations[locations.Source != 'NUTS3']
-            .set_index('Country')
+            locationuts_to_regions_dfs[nuts_to_regions_df.Source != 'NUTS3']
+            .set_index('country_code')
             .rename(index=_get_alpha3)
-            .EuroSPORES
+            .id
         )
     )
 
@@ -96,5 +96,5 @@ if __name__ == "__main__":
     dissolve_nuts3(
         path_to_csvs=snakemake.input.csvs,
         path_to_units=snakemake.input.units,
-        path_to_gtc=snakemake.input.gtc
+        path_to_nuts_to_regions=snakemake.input.nuts_to_regions
     )
