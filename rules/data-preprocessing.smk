@@ -1,6 +1,5 @@
 """This is a Snakemake file defining rules to retrieve raw data from online sources."""
 import pycountry
-from src.conversion import transform_bounds
 import pandas as pd
 
 URL_LOAD = "https://data.open-power-system-data.org/time_series/2018-06-30/time_series_60min_stacked.csv"
