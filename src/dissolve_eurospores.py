@@ -22,7 +22,7 @@ def dissolve_nuts3(path_to_csvs, path_to_units, path_to_nuts_to_regions):
         .set_index(nuts_to_regions_df.dropna(subset=['NUTS3_2006']).NUTS3_2006)
         .id
         .append(
-            locationuts_to_regions_dfs[nuts_to_regions_df.Source != 'NUTS3']
+            nuts_to_regions_df[nuts_to_regions_df.Source != 'NUTS3']
             .set_index('country_code')
             .rename(index=_get_alpha3)
             .id
